@@ -60,7 +60,7 @@
         <div class="table-responsive">
             <table class="table table-hover mb-0">
                 <thead class="table-dark">
-                    <tr>
+                    {{-- <tr>
                         <th style="width:60px;">No</th>
                         <th>Produk</th>
                         <th>Kode Produksi</th>
@@ -68,7 +68,7 @@
                         <th style="width:140px;">QR Code</th>
                         <th style="width:140px;">Tanggal</th>
                         <th style="width:170px;">Aksi</th>
-                    </tr>
+                    </tr> --}}
                 </thead>
                 <tbody>
                     @forelse($products as $product)
