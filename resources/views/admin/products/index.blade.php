@@ -14,10 +14,10 @@
 
 @section('content')
 <div class="admin-header d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
-    {{-- <div>
+    <div>
         <h3 class="mb-0">Daftar Produk</h3>
         <div class="small-muted">Kelola produk, manual, sertifikat, dan dokumen resmi.</div>
-    </div> --}}
+    </div>
 
     <div class="d-flex gap-2 align-items-center">
         <a href="{{ route('products.create') }}" class="btn btn-primary">+ Tambah Produk</a>
@@ -60,7 +60,7 @@
         <div class="table-responsive">
             <table class="table table-hover mb-0">
                 <thead class="table-dark">
-                    {{-- <tr>
+                    <tr>
                         <th style="width:60px;">No</th>
                         <th>Produk</th>
                         <th>Kode Produksi</th>
@@ -68,7 +68,7 @@
                         <th style="width:140px;">QR Code</th>
                         <th style="width:140px;">Tanggal</th>
                         <th style="width:170px;">Aksi</th>
-                    </tr> --}}
+                    </tr>
                 </thead>
                 <tbody>
                     @forelse($products as $product)
