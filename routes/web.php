@@ -1,0 +1,34 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\CKEditorController;
+use App\Http\Controllers\User\UserManualController;
+use App\Http\Controllers\User\ProductVerificationController;
+
+
+Route::get('/', [ProductVerificationController::class, 'index'])->name('home');
+Route::get('/verify', [ProductVerificationController::class, 'index'])->name('verify.index');
+Route::post('/verify', [ProductVerificationController::class, 'verify'])->name('verify.store');
+// routes/web.php
+Route::get('/captcha', [ProductVerificationController::class, 'generate'])->name('captcha.generate');
+
+Route::get('/manual/{slug}', [UserManualController::class, 'show'])->name('user.manual');
+
+
+Route::get('/admin/login', [AuthController::class, 'showLoginForm'])->name('admin.login');
+Route::post('/admin/login', [AuthController::class, 'login'])->middleware('throttle:3,1')->name('admin.login.submit');
+Route::post('/admin/logout', [AuthController::class, 'logout'])->name('admin.logout');
+
+// Proteksi route admin: pakai session auth + custom isAdmin
+Route::middleware(['auth', 'isAdmin'])->prefix('admin')->group(function () {
+    Route::resource('products', ProductController::class);
+});
+
+
+
+
+
+
+
