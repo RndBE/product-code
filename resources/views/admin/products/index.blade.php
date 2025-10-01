@@ -14,10 +14,10 @@
 
 @section('content')
 <div class="admin-header d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
-    <div>
+    {{-- <div>
         <h3 class="mb-0">Daftar Produk</h3>
         <div class="small-muted">Kelola produk, manual, sertifikat, dan dokumen resmi.</div>
-    </div>
+    </div> --}}
 
     <div class="d-flex gap-2 align-items-center">
         <a href="{{ route('products.create') }}" class="btn btn-primary">+ Tambah Produk</a>
