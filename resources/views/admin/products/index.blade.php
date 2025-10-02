@@ -134,7 +134,7 @@
                             <div class="d-flex flex-column">
                                 @if($product->qr_code)
                                     <img
-                                        src="{{ 'https://beacontelemetry.com/ProductManual/' . $product->qr_code }}"
+                                        src="{{ asset('storage/' . $product->qr_code) }}"
                                         alt="QR Code"
                                         style="width:100px; height:auto;"
                                     >
@@ -164,7 +164,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="text-center small-muted py-4">Tidak ada produk ditemukan.</td>
+                        <td colspan="7" class="text-center small-muted py-4">Tidak ada produk ditemukan.</td>
                     </tr>
                     @endforelse
                 </tbody>

@@ -171,12 +171,8 @@ class ProductController extends Controller
         ]);
 
         // Generate QR code
-        $today = now()->format('Ymd');
-        $slug  = Str::slug($product->name, '-');
         $qrName = 'qrcode-' . $today . '_' . $slug . '.png';
-
-        // simpan di folder public/qrcodes (akses via /storage/qrcodes/xxx.png)
-        $qrPath = 'qrcodes/' . $qrName;
+        $qrPath = $qrName; // langsung di root FTP (tanpa folder qrcodes/)
 
         // Build QR Code
         $result = (new Builder(
@@ -187,16 +183,12 @@ class ProductController extends Controller
         ))->build();
 
         try {
-            // Simpan ke local storage (disk public)
-            $ok = Storage::disk('public')->put($qrPath, $result->getString());
-
+            $ok = $disk->put($qrPath, $result->getString()); // simpan ke FTP
             if ($ok === false) {
-                return back()->withErrors(['qr_code' => 'Gagal menyimpan QR Code ke storage.']);
+                return back()->withErrors(['qr_code' => 'FTP gagal menyimpan QR Code.']);
             }
 
-            // update database dengan path relatif
             $product->update(['qr_code' => $qrPath]);
-
         } catch (FilesystemException | \Exception $e) {
             return back()->withErrors([
                 'qr_code' => 'Gagal meng-upload QR Code: ' . $e->getMessage()
