@@ -84,7 +84,7 @@
             <div class="tab-content border p-3 bg-white rounded-bottom" id="docTabsContent">
                 <div class="tab-pane fade show active" id="manual" role="tabpanel">
                     @if($product->manual_file)
-                        <iframe class="pdf-frame" src="{{ asset('storage/' . $product->manual_file) }}" style="height:600px; width:100%;" frameborder="0"></iframe>
+                        <iframe class="pdf-frame" src="{{ $product->manual_file }}" style="height:600px; width:100%;" frameborder="0"></iframe>
                     @else
                         <div class="p-4 text-center muted">Manual belum tersedia.</div>
                     @endif
@@ -105,7 +105,7 @@
                 </div>
                 <div class="tab-pane fade" id="warranty" role="tabpanel">
                     @if($product->warranty_card)
-                        <iframe class="pdf-frame" src="{{ asset('storage/' . $product->warranty_card) }}" style="height:600px; width:100%;" frameborder="0"></iframe>
+                        <iframe class="pdf-frame" src="{{ $product->warranty_card }}" style="height:600px; width:100%;" frameborder="0"></iframe>
                     @else
                         <div class="p-4 text-center muted">Dokumen garansi belum tersedia.</div>
                     @endif

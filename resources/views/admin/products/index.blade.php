@@ -104,7 +104,7 @@
                         <td class="align-middle">
                             <div class="d-flex flex-column">
                                 @if($product->manual_file)
-                                    <a class="small-muted" href="{{ 'https://beacontelemetry.com/ProductManual/' . $product->manual_file }}" target="_blank">📘 Manual</a>
+                                    <a class="small-muted" href="{{ $product->manual_file }}" target="_blank">📘 Manual</a>
                                 @else
                                     <span class="small-muted">—</span>
                                 @endif
@@ -123,7 +123,7 @@
 
 
                                 @if($product->warranty_card)
-                                    <a class="small-muted mt-1" href="{{ 'https://beacontelemetry.com/ProductManual/' . $product->warranty_card }}" target="_blank">📑 Garansi</a>
+                                    <a class="small-muted mt-1" href="{{ $product->warranty_card }}" target="_blank">📑 Garansi</a>
                                 @else
                                     <span class="small-muted">—</span>
                                 @endif
@@ -134,7 +134,7 @@
                             <div class="d-flex flex-column">
                                 @if($product->qr_code)
                                     <img
-                                        src="{{ asset('storage/' . $product->qr_code) }}"
+                                        src="{{ asset($product->qr_code) }}"
                                         alt="QR Code"
                                         style="width:100px; height:auto;"
                                     >

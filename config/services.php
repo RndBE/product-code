@@ -41,6 +41,12 @@ return [
         'url_storage' => env('INVENTORY_URL_STORAGE'),
     ],
 
+    'upload' => [
+        'url' => env('UPLOAD_SERVER_URL'),
+        'key' => env('UPLOAD_API_KEY'),
+    ],
+
+
 
 
 ];

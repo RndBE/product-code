@@ -81,14 +81,9 @@ class ProductController extends Controller
         $data = $request->validate([
             'qc_product_id'   => 'required|integer',
             'name'            => 'nullable|string|max:255',
-            'manual_file'     => 'nullable|file|mimes:pdf,docx|max:5120',
-            'warranty_card'   => 'nullable|file|mimes:pdf,docx|max:5120',
+            'manual_file'     => 'nullable|file|mimes:pdf,docx',
+            'warranty_card'   => 'nullable|file|mimes:pdf,docx',
             'content'         => 'nullable|string',
-        ], [
-            'manual_file.max'   => 'Manual file tidak boleh lebih dari 5 MB.',
-            'manual_file.mimes' => 'Manual file harus berupa file PDF atau DOCX.',
-            'warranty_card.max'   => 'Warranty card tidak boleh lebih dari 5 MB.',
-            'warranty_card.mimes' => 'Warranty card harus berupa file PDF atau DOCX.',
         ]);
 
         // Ambil detail produk dari Inventory
@@ -101,50 +96,63 @@ class ProductController extends Controller
             return back()->withErrors(['qc_product_id' => 'Gagal ambil data dari Inventory!']);
         }
 
-        $inv   = $response->json('data');
-        $slug  = Str::slug($inv['produksi_produk_jadi']['data_produk_jadi']['nama_produk']) . '-' . time();
+        $inv = $response->json('data');
+        $slug = Str::slug($inv['produksi_produk_jadi']['data_produk_jadi']['nama_produk']) . '-' . time();
+        $disk = Storage::disk('exabyte');
         $today = date('Ymd');
 
-        $manualFileUrl = null;
-        $warrantyFileUrl = null;
-
-        // Upload manual_file ke server penerima
+        // Upload manual file
         if ($request->hasFile('manual_file')) {
             $manualFile = $request->file('manual_file');
+            $manualName = 'manual-'. $today . '_' . $slug . '.' . $manualFile->getClientOriginalExtension();
+            $remotePath = $manualName; // langsung di root FTP
 
-            $uploadResponse = Http::withHeaders([
-                'X-API-KEY' => config('services.upload.key'),
-            ])
-            ->attach(
-                'manual_file',
-                fopen($manualFile->getRealPath(), 'r'),
-                'manual-' . $today . '_' . $slug . '.' . $manualFile->getClientOriginalExtension()
-            )
-            ->post(config('services.upload.url'));
+            try {
+                $stream = fopen($manualFile->getRealPath(), 'r');
+                if ($stream === false) {
+                    return back()->withErrors(['manual_file' => 'Gagal membuka file manual untuk upload.']);
+                }
 
-            if ($uploadResponse->successful()) {
-                $json = $uploadResponse->json();
-                $manualFileUrl = $json['files']['manual_file'] ?? null;
+                $ok = $disk->writeStream($remotePath, $stream);
+                if (is_resource($stream)) fclose($stream);
+
+                if ($ok === false) {
+                    return back()->withErrors(['manual_file' => 'FTP writeStream gagal. Cek permission dan root folder di config.']);
+                }
+
+                $data['manual_file'] = $remotePath;
+            } catch (FilesystemException | \Exception $e) {
+                return back()->withErrors([
+                    'manual_file' => 'Gagal meng-upload manual: ' . $e->getMessage()
+                ]);
             }
         }
 
-        // Upload warranty_card ke server penerima
+
+        // Upload warranty card
         if ($request->hasFile('warranty_card')) {
             $warrantyFile = $request->file('warranty_card');
+            $warrantyName = 'warranty-'.$today . '_' . $slug . '.' . $warrantyFile->getClientOriginalExtension();
+            $remotePath = $warrantyName;
 
-            $uploadResponse = Http::withHeaders([
-                'X-API-KEY' => config('services.upload.key'),
-            ])
-            ->attach(
-                'warranty_card',
-                fopen($manualFile->getRealPath(), 'r'),
-                'warranty-' . $today . '_' . $slug . '.' . $warrantyFile->getClientOriginalExtension()
-            )
-            ->post(config('services.upload.url'));
+            $stream = fopen($warrantyFile->getRealPath(), 'r');
+            if ($stream === false) {
+                return back()->withErrors(['warranty_card' => 'Gagal membuka file garansi untuk upload.']);
+            }
 
-            if ($uploadResponse->successful()) {
-                $json = $uploadResponse->json();
-                $warrantyFileUrl = $json['files']['warranty_card'] ?? null;
+            try {
+                $ok = $disk->writeStream($remotePath, $stream);
+                if (is_resource($stream)) fclose($stream);
+
+                if ($ok === false) {
+                    return back()->withErrors(['warranty_card' => 'FTP writeStream gagal. Cek permission dan root folder di config.']);
+                }
+
+                $data['warranty_card'] = $remotePath;
+            } catch (FilesystemException | \Exception $e) {
+                return back()->withErrors([
+                    'warranty_card' => 'Gagal meng-upload garansi: ' . $e->getMessage()
+                ]);
             }
         }
 
@@ -152,8 +160,8 @@ class ProductController extends Controller
         $product = Product::create([
             'name'               => $inv['produksi_produk_jadi']['data_produk_jadi']['nama_produk'],
             'slug'               => $slug,
-            'manual_file'        => $manualFileUrl,
-            'warranty_card'      => $warrantyFileUrl,
+            'manual_file'        => $data['manual_file'] ?? null,
+            'warranty_card'      => $data['warranty_card'] ?? null,
             'content'            => $request->content,
             'produk_jadi_list_id'=> $inv['id'],
             'produk_jadi_id'     => $inv['produk_jadi_id'],
@@ -163,7 +171,14 @@ class ProductController extends Controller
         ]);
 
         // Generate QR code
+        $today = now()->format('Ymd');
+        $slug  = Str::slug($product->name, '-');
         $qrName = 'qrcode-' . $today . '_' . $slug . '.png';
+
+        // simpan di folder public/qrcodes (akses via /storage/qrcodes/xxx.png)
+        $qrPath = 'qrcodes/' . $qrName;
+
+        // Build QR Code
         $result = (new Builder(
             writer: new PngWriter(),
             data: route('user.manual', $product->slug),
@@ -171,29 +186,26 @@ class ProductController extends Controller
             margin: 10
         ))->build();
 
-        $uploadResponse = Http::withHeaders([
-            'X-API-KEY' => config('services.upload.key'),
-        ])
-        ->attach(
-            'qr_code',
-            $result->getString(),
-            $qrName
-        )->post(config('services.upload.url'));
+        try {
+            // Simpan ke local storage (disk public)
+            $ok = Storage::disk('public')->put($qrPath, $result->getString());
 
-        if ($uploadResponse->successful()) {
-            $json = $uploadResponse->json();
-            $qrPath = $json['files']['qr_code'] ?? null;
-
-            if ($qrPath) {
-                $product->update(['qr_code' => $qrPath]);
+            if ($ok === false) {
+                return back()->withErrors(['qr_code' => 'Gagal menyimpan QR Code ke storage.']);
             }
-        } else {
-            return back()->withErrors(['qr_code' => 'Upload QR Code gagal ke server penerima']);
+
+            // update database dengan path relatif
+            $product->update(['qr_code' => $qrPath]);
+
+        } catch (FilesystemException | \Exception $e) {
+            return back()->withErrors([
+                'qr_code' => 'Gagal meng-upload QR Code: ' . $e->getMessage()
+            ]);
         }
+
 
         return redirect()->route('products.index')->with('success', 'Produk berhasil ditambahkan!');
     }
-
 
 
 
