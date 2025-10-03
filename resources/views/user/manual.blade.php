@@ -238,7 +238,7 @@
                         </h2>
                         <div id="collapse1" class="accordion-collapse collapse" data-bs-parent="#faqAcc">
                           <div class="accordion-body small muted">
-                            Siapkan bukti pembelian & serial number, lalu hubungi tim support atau kunjungi halaman klaim garansi di website resmi.
+                            Siapkan bukti pembelian & serial number, lalu hubungi tim support.
                           </div>
                         </div>
                     </div>
