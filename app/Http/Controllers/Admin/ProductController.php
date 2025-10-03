@@ -103,9 +103,10 @@ class ProductController extends Controller
         }
 
         $inv   = $response->json('data');
-        $slug  = Str::slug($inv['produksi_produk_jadi']['data_produk_jadi']['nama_produk']) . '-' . time();
-        $today = date('Ymd');
-
+        // dd($inv);
+        $slug  = Str::slug($inv['produksi_produk_jadi']['data_produk_jadi']['nama_produk']) . '-'. ($inv['serial_number']);
+        $today = date('Ymd_His');
+        // dd($slug);
         $manualFileName = null;
         $warrantyFileName = null;
 
@@ -117,7 +118,7 @@ class ProductController extends Controller
                 ->attach(
                     'manual', // key sesuai API server penerima
                     fopen($manualFile->getRealPath(), 'r'),
-                    'manual-' . $today . '_' . $slug . '.' . $manualFile->getClientOriginalExtension()
+                    'manual_' . $today . '_' . $slug . '.' . $manualFile->getClientOriginalExtension()
                 )->withoutVerifying()
                 ->post(config('services.upload.url') . '/api/do_upload'); // tambahkan path
 
@@ -136,7 +137,7 @@ class ProductController extends Controller
                 ->attach(
                     'warranty', // key sesuai API server penerima
                     fopen($warrantyFile->getRealPath(), 'r'),
-                    'warranty-' . $today . '_' . $slug . '.' . $warrantyFile->getClientOriginalExtension()
+                    'warranty_' . $today . '_' . $slug . '.' . $warrantyFile->getClientOriginalExtension()
                 )->withoutVerifying()
                 ->post(config('services.upload.url') . '/api/do_upload');
 
@@ -161,7 +162,7 @@ class ProductController extends Controller
         ]);
 
         // Generate QR code
-        $qrName = 'qrcode-' . $today . '_' . $slug . '.png';
+        $qrName = 'qrcode_' . $today . '_' . $slug . '.png';
         $result = (new Builder(
             writer: new PngWriter(),
             data: route('user.manual', $product->slug),
@@ -237,8 +238,8 @@ class ProductController extends Controller
         }
 
         $inv   = $response->json('data');
-        $slug  = Str::slug($inv['produksi_produk_jadi']['data_produk_jadi']['nama_produk']) . '-' . time();
-        $today = date('Ymd');
+        $slug  = $product->slug;
+        $today = date('Ymd_His');
 
         $manualFileName = $product->manual_file;
         $warrantyFileName = $product->warranty_card;
@@ -246,7 +247,7 @@ class ProductController extends Controller
         // === Upload manual_file ke server penerima ===
         if ($request->hasFile('manual_file')) {
             $manualFile = $request->file('manual_file');
-            $manualFileNameNew = 'manual-' . $today . '_' . $slug . '.' . $manualFile->getClientOriginalExtension();
+            $manualFileNameNew = 'manual_' . $today . '_' . $slug . '.' . $manualFile->getClientOriginalExtension();
 
             // Hapus file lama di server penerima
             if ($manualFileName) {
@@ -275,7 +276,7 @@ class ProductController extends Controller
         // === Upload warranty_card ke server penerima ===
         if ($request->hasFile('warranty_card')) {
             $warrantyFile = $request->file('warranty_card');
-            $warrantyFileNameNew = 'warranty-' . $today . '_' . $slug . '.' . $warrantyFile->getClientOriginalExtension();
+            $warrantyFileNameNew = 'warranty_' . $today . '_' . $slug . '.' . $warrantyFile->getClientOriginalExtension();
 
             // Hapus file lama di server penerima
             if ($warrantyFileName) {
