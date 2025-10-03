@@ -83,56 +83,56 @@
 
             <div class="tab-content border p-3 bg-white rounded-bottom" id="docTabsContent">
                 <div class="tab-pane fade show active" id="manual" role="tabpanel">
-        @if($product->manual_file)
-            @php
-                $manualUrl = 'https://stesy.beacontelemetry.com/product/manual/' . $product->manual_file;
-            @endphp
+                    @if($product->manual_file)
+                        @php
+                            $manualUrl = 'https://stesy.beacontelemetry.com/product/manual/' . $product->manual_file;
+                        @endphp
 
-            <div class="pdf-wrapper">
-                <iframe class="pdf-iframe" data-src="https://docs.google.com/gview?url={{ urlencode($manualUrl) }}&embedded=true"
-                        style="width:100%; height:600px; border:0;"></iframe>
+                        <div class="pdf-wrapper">
+                            <iframe class="pdf-iframe" data-src="https://docs.google.com/gview?url={{ urlencode($manualUrl) }}&embedded=true"
+                                    style="width:100%; height:600px; border:0;"></iframe>
 
-                <div class="mt-2">
-                    <a href="{{ $manualUrl }}" target="_blank" rel="noopener noreferrer">Buka manual di tab baru</a>
+                            {{-- <div class="mt-2">
+                                <a href="{{ $manualUrl }}" target="_blank" rel="noopener noreferrer">Buka manual di tab baru</a>
+                            </div> --}}
+                        </div>
+                    @else
+                        <div class="p-4 text-center muted">Manual belum tersedia.</div>
+                    @endif
                 </div>
-            </div>
-        @else
-            <div class="p-4 text-center muted">Manual belum tersedia.</div>
-        @endif
-    </div>
 
-    <div class="tab-pane fade" id="qc" role="tabpanel">
-        @if(!empty($qcCertificateUrl))
-            <div class="pdf-wrapper">
-                <iframe class="pdf-iframe" data-src="https://docs.google.com/gview?url={{ urlencode($qcCertificateUrl) }}&embedded=true"
-                        style="width:100%; height:600px; border:0;"></iframe>
+                <div class="tab-pane fade" id="qc" role="tabpanel">
+                    @if(!empty($qcCertificateUrl))
+                        <div class="pdf-wrapper">
+                            <iframe class="pdf-iframe" data-src="https://docs.google.com/gview?url={{ urlencode($qcCertificateUrl) }}&embedded=true"
+                                    style="width:100%; height:600px; border:0;"></iframe>
 
-                <div class="mt-2">
-                    <a href="{{ $qcCertificateUrl }}" target="_blank" rel="noopener noreferrer">Buka sertifikat QC di tab baru</a>
+                            {{-- <div class="mt-2">
+                                <a href="{{ $qcCertificateUrl }}" target="_blank" rel="noopener noreferrer">Buka sertifikat QC di tab baru</a>
+                            </div> --}}
+                        </div>
+                    @else
+                        <div class="p-4 text-center muted">Sertifikat QC belum tersedia atau tidak dapat diakses.</div>
+                    @endif
                 </div>
-            </div>
-        @else
-            <div class="p-4 text-center muted">Sertifikat QC belum tersedia atau tidak dapat diakses.</div>
-        @endif
-    </div>
 
-    <div class="tab-pane fade" id="warranty" role="tabpanel">
-        @if($product->warranty_card)
-            @php
-                $warrantyUrl = 'https://stesy.beacontelemetry.com/product/warranty/' . $product->warranty_card;
-            @endphp
-            <div class="pdf-wrapper">
-                <iframe class="pdf-iframe" data-src="https://docs.google.com/gview?url={{ urlencode($warrantyUrl) }}&embedded=true"
-                        style="width:100%; height:600px; border:0;"></iframe>
+                <div class="tab-pane fade" id="warranty" role="tabpanel">
+                    @if($product->warranty_card)
+                        @php
+                            $warrantyUrl = 'https://stesy.beacontelemetry.com/product/warranty/' . $product->warranty_card;
+                        @endphp
+                        <div class="pdf-wrapper">
+                            <iframe class="pdf-iframe" data-src="https://docs.google.com/gview?url={{ urlencode($warrantyUrl) }}&embedded=true"
+                                    style="width:100%; height:600px; border:0;"></iframe>
 
-                <div class="mt-2">
-                    <a href="{{ $warrantyUrl }}" target="_blank" rel="noopener noreferrer">Buka garansi di tab baru</a>
+                            {{-- <div class="mt-2">
+                                <a href="{{ $warrantyUrl }}" target="_blank" rel="noopener noreferrer">Buka garansi di tab baru</a>
+                            </div> --}}
+                        </div>
+                    @else
+                        <div class="p-4 text-center muted">Dokumen garansi belum tersedia.</div>
+                    @endif
                 </div>
-            </div>
-        @else
-            <div class="p-4 text-center muted">Dokumen garansi belum tersedia.</div>
-        @endif
-    </div>
             </div>
         </section>
     </div>
