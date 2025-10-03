@@ -92,9 +92,9 @@
                             <iframe class="pdf-iframe" data-src="https://docs.google.com/gview?url={{ urlencode($manualUrl) }}&embedded=true"
                                     style="width:100%; height:600px; border:0;"></iframe>
 
-                            {{-- <div class="mt-2">
-                                <a href="{{ $manualUrl }}" target="_blank" rel="noopener noreferrer">Buka manual di tab baru</a>
-                            </div> --}}
+                            <div class="mt-2">
+                                <a href="{{ $manualUrl }}" target="_blank" rel="noopener noreferrer">Link Download</a>
+                            </div>
                         </div>
                     @else
                         <div class="p-4 text-center muted">Manual belum tersedia.</div>
@@ -107,9 +107,9 @@
                             <iframe class="pdf-iframe" data-src="https://docs.google.com/gview?url={{ urlencode($qcCertificateUrl) }}&embedded=true"
                                     style="width:100%; height:600px; border:0;"></iframe>
 
-                            {{-- <div class="mt-2">
-                                <a href="{{ $qcCertificateUrl }}" target="_blank" rel="noopener noreferrer">Buka sertifikat QC di tab baru</a>
-                            </div> --}}
+                            <div class="mt-2">
+                                <a href="{{ $qcCertificateUrl }}" target="_blank" rel="noopener noreferrer">Link Download</a>
+                            </div>
                         </div>
                     @else
                         <div class="p-4 text-center muted">Sertifikat QC belum tersedia atau tidak dapat diakses.</div>
@@ -125,9 +125,9 @@
                             <iframe class="pdf-iframe" data-src="https://docs.google.com/gview?url={{ urlencode($warrantyUrl) }}&embedded=true"
                                     style="width:100%; height:600px; border:0;"></iframe>
 
-                            {{-- <div class="mt-2">
-                                <a href="{{ $warrantyUrl }}" target="_blank" rel="noopener noreferrer">Buka garansi di tab baru</a>
-                            </div> --}}
+                            <div class="mt-2">
+                                <a href="{{ $warrantyUrl }}" target="_blank" rel="noopener noreferrer">Link Download</a>
+                            </div>
                         </div>
                     @else
                         <div class="p-4 text-center muted">Dokumen garansi belum tersedia.</div>
