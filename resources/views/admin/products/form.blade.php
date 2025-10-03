@@ -3,7 +3,15 @@
 @section('content')
 <div class="container py-4">
     <h3 class="mb-4">{{ isset($product) ? 'Edit Produk' : 'Tambah Produk' }}</h3>
-
+    @if($errors->any())
+    <div class="alert alert-danger">
+        <ul class="mb-0">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
     <div class="card shadow-sm">
         <div class="card-body">
             <form action="{{ isset($product) ? route('products.update', $product->id) : route('products.store') }}"
@@ -65,7 +73,7 @@
                     @if(isset($product) && $product->manual_file)
                         <small class="d-block mt-2">
                             File saat ini:
-                            <a href="{{ 'https://beacontelemetry.com/ProductManual/' . $product->manual_file }}" target="_blank" class="text-primary fw-bold">
+                            <a href="{{ 'https://stesy.beacontelemetry.com/product/manual/' . $product->manual_file }}" target="_blank" class="text-primary fw-bold">
                                 Lihat Manual
                             </a>
                         </small>
@@ -82,7 +90,7 @@
                     @if(isset($product) && $product->warranty_card)
                         <small class="d-block mt-2">
                             File saat ini:
-                            <a href="{{ 'https://beacontelemetry.com/ProductManual/' . $product->warranty_card }}" target="_blank" class="text-primary fw-bold">
+                            <a href="{{ 'https://stesy.beacontelemetry.com/product/warranty/' . $product->warranty_card }}" target="_blank" class="text-primary fw-bold">
                                 Lihat Kartu Garansi
                             </a>
                         </small>

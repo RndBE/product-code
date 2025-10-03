@@ -42,11 +42,7 @@ return [
     ],
 
     'upload' => [
-        'url' => env('UPLOAD_SERVER_URL'),
-        'key' => env('UPLOAD_API_KEY'),
+        'url'   => env('UPLOAD_URL'),
+        'token' => env('UPLOAD_TOKEN'),
     ],
-
-
-
-
 ];

@@ -53,6 +53,15 @@
 @if(session('success'))
     <div class="alert alert-success">{{ session('success') }}</div>
 @endif
+@if($errors->any())
+    <div class="alert alert-danger">
+        <ul class="mb-0">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
 
 {{-- Table --}}
 <div class="card mb-3">
@@ -104,7 +113,7 @@
                         <td class="align-middle">
                             <div class="d-flex flex-column">
                                 @if($product->manual_file)
-                                    <a class="small-muted" href="{{ $product->manual_file }}" target="_blank">📘 Manual</a>
+                                    <a class="small-muted" href="{{ 'https://stesy.beacontelemetry.com/product/manual/' . $product->manual_file }}" target="_blank">📘 Manual</a>
                                 @else
                                     <span class="small-muted">—</span>
                                 @endif
@@ -123,7 +132,7 @@
 
 
                                 @if($product->warranty_card)
-                                    <a class="small-muted mt-1" href="{{ $product->warranty_card }}" target="_blank">📑 Garansi</a>
+                                    <a class="small-muted mt-1" href="{{ 'https://stesy.beacontelemetry.com/product/warranty/'. $product->warranty_card }}" target="_blank">📑 Garansi</a>
                                 @else
                                     <span class="small-muted">—</span>
                                 @endif
@@ -134,7 +143,7 @@
                             <div class="d-flex flex-column">
                                 @if($product->qr_code)
                                     <img
-                                        src="{{ asset($product->qr_code) }}"
+                                        src="{{ 'https://stesy.beacontelemetry.com/product/qr_code/'. $product->qr_code }}"
                                         alt="QR Code"
                                         style="width:100px; height:auto;"
                                     >

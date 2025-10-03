@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use Log;
 use App\Models\Product;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -105,46 +106,43 @@ class ProductController extends Controller
         $slug  = Str::slug($inv['produksi_produk_jadi']['data_produk_jadi']['nama_produk']) . '-' . time();
         $today = date('Ymd');
 
-        $manualFileUrl = null;
-        $warrantyFileUrl = null;
+        $manualFileName = null;
+        $warrantyFileName = null;
 
         // Upload manual_file ke server penerima
         if ($request->hasFile('manual_file')) {
             $manualFile = $request->file('manual_file');
 
-            $uploadResponse = Http::withHeaders([
-                'X-API-KEY' => config('services.upload.key'),
-            ])
-            ->attach(
-                'manual_file',
-                fopen($manualFile->getRealPath(), 'r'),
-                'manual-' . $today . '_' . $slug . '.' . $manualFile->getClientOriginalExtension()
-            )
-            ->post(config('services.upload.url'));
+            $uploadResponse = Http::withToken(config('services.upload.token'))
+                ->attach(
+                    'manual', // key sesuai API server penerima
+                    fopen($manualFile->getRealPath(), 'r'),
+                    'manual-' . $today . '_' . $slug . '.' . $manualFile->getClientOriginalExtension()
+                )->withoutVerifying()
+                ->post(config('services.upload.url') . '/api/do_upload'); // tambahkan path
 
             if ($uploadResponse->successful()) {
                 $json = $uploadResponse->json();
-                $manualFileUrl = $json['files']['manual_file'] ?? null;
+                $manualFileName = $json['manual']['file_name'] ?? null; // simpan file_name
             }
         }
+
 
         // Upload warranty_card ke server penerima
         if ($request->hasFile('warranty_card')) {
             $warrantyFile = $request->file('warranty_card');
 
-            $uploadResponse = Http::withHeaders([
-                'X-API-KEY' => config('services.upload.key'),
-            ])
-            ->attach(
-                'warranty_card',
-                fopen($manualFile->getRealPath(), 'r'),
-                'warranty-' . $today . '_' . $slug . '.' . $warrantyFile->getClientOriginalExtension()
-            )
-            ->post(config('services.upload.url'));
+            $uploadResponse = Http::withToken(config('services.upload.token'))
+                ->attach(
+                    'warranty', // key sesuai API server penerima
+                    fopen($warrantyFile->getRealPath(), 'r'),
+                    'warranty-' . $today . '_' . $slug . '.' . $warrantyFile->getClientOriginalExtension()
+                )->withoutVerifying()
+                ->post(config('services.upload.url') . '/api/do_upload');
 
             if ($uploadResponse->successful()) {
                 $json = $uploadResponse->json();
-                $warrantyFileUrl = $json['files']['warranty_card'] ?? null;
+                $warrantyFileName = $json['warranty']['file_name'] ?? null; // simpan file_name
             }
         }
 
@@ -152,8 +150,8 @@ class ProductController extends Controller
         $product = Product::create([
             'name'               => $inv['produksi_produk_jadi']['data_produk_jadi']['nama_produk'],
             'slug'               => $slug,
-            'manual_file'        => $manualFileUrl,
-            'warranty_card'      => $warrantyFileUrl,
+            'manual_file'        => $manualFileName,
+            'warranty_card'      => $warrantyFileName,
             'content'            => $request->content,
             'produk_jadi_list_id'=> $inv['id'],
             'produk_jadi_id'     => $inv['produk_jadi_id'],
@@ -171,18 +169,17 @@ class ProductController extends Controller
             margin: 10
         ))->build();
 
-        $uploadResponse = Http::withHeaders([
-            'X-API-KEY' => config('services.upload.key'),
-        ])
+        $uploadResponse = Http::withToken(config('services.upload.token'))
         ->attach(
-            'qr_code',
+            'qr_code', // key sesuai API server penerima
             $result->getString(),
             $qrName
-        )->post(config('services.upload.url'));
+        )->withoutVerifying()
+        ->post(config('services.upload.url') . '/api/do_upload');
 
         if ($uploadResponse->successful()) {
             $json = $uploadResponse->json();
-            $qrPath = $json['files']['qr_code'] ?? null;
+            $qrPath = $json['qr_code']['file_name'] ?? null;
 
             if ($qrPath) {
                 $product->update(['qr_code' => $qrPath]);
@@ -193,9 +190,6 @@ class ProductController extends Controller
 
         return redirect()->route('products.index')->with('success', 'Produk berhasil ditambahkan!');
     }
-
-
-
 
     public function edit(string $id)
     {
@@ -220,7 +214,6 @@ class ProductController extends Controller
         ]);
     }
 
-
     public function update(Request $request, string $id)
     {
         $product = Product::findOrFail($id);
@@ -233,7 +226,7 @@ class ProductController extends Controller
             'content'         => 'nullable|string',
         ]);
 
-        // === Ambil detail produk dari Inventory ===
+        // Ambil detail produk dari Inventory
         $response = Http::withHeaders([
             'X-API-KEY' => config('services.inventory.key'),
             'Accept'    => 'application/json',
@@ -245,79 +238,75 @@ class ProductController extends Controller
 
         $inv   = $response->json('data');
         $slug  = Str::slug($inv['produksi_produk_jadi']['data_produk_jadi']['nama_produk']) . '-' . time();
-        $disk  = Storage::disk('exabyte');
         $today = date('Ymd');
 
-        // === Upload manual file baru (ke FTP) ===
+        $manualFileName = $product->manual_file;
+        $warrantyFileName = $product->warranty_card;
+
+        // === Upload manual_file ke server penerima ===
         if ($request->hasFile('manual_file')) {
-            // hapus file lama kalau ada
-            if ($product->manual_file && $disk->exists($product->manual_file)) {
-                $disk->delete($product->manual_file);
-            }
-
             $manualFile = $request->file('manual_file');
-            $manualName = 'manual-'.$today.'_'.$slug.'.'.$manualFile->getClientOriginalExtension();
+            $manualFileNameNew = 'manual-' . $today . '_' . $slug . '.' . $manualFile->getClientOriginalExtension();
 
-            $stream = fopen($manualFile->getRealPath(), 'r');
-            if ($stream === false) {
-                return back()->withErrors(['manual_file' => 'Gagal membuka file manual untuk upload.']);
+            // Hapus file lama di server penerima
+            if ($manualFileName) {
+                Http::withToken(config('services.upload.token'))
+                    ->asForm()->withoutVerifying()
+                    ->post(config('services.upload.url') . '/api/delete_file', [
+                        'file_name' => $manualFileName,
+                        'folder'    => 'manual',
+                    ]);
             }
 
-            try {
-                $ok = $disk->writeStream($manualName, $stream);
-                if (is_resource($stream)) fclose($stream);
+            // Upload file baru
+            $uploadResponse = Http::withToken(config('services.upload.token'))
+                ->attach('manual', fopen($manualFile->getRealPath(), 'r'), $manualFileNameNew)
+                ->withoutVerifying()
+                ->post(config('services.upload.url') . '/api/do_upload');
 
-                if ($ok === false) {
-                    return back()->withErrors(['manual_file' => 'FTP gagal upload manual.']);
-                }
-
-                $data['manual_file'] = $manualName;
-            } catch (FilesystemException | \Exception $e) {
-                return back()->withErrors([
-                    'manual_file' => 'Gagal upload manual: '.$e->getMessage()
-                ]);
+            if ($uploadResponse->successful()) {
+                $json = $uploadResponse->json();
+                $manualFileName = $json['manual']['file_name'] ?? $manualFileNameNew;
+            } else {
+                return back()->withErrors(['manual_file' => 'Upload manual gagal!']);
             }
         }
 
-
-        // === Upload warranty card baru (ke FTP) ===
+        // === Upload warranty_card ke server penerima ===
         if ($request->hasFile('warranty_card')) {
-            // hapus file lama kalau ada
-            if ($product->warranty_card && $disk->exists($product->warranty_card)) {
-                $disk->delete($product->warranty_card);
-            }
-
             $warrantyFile = $request->file('warranty_card');
-            $warrantyName = 'warranty-'.$today.'_'.$slug.'.'.$warrantyFile->getClientOriginalExtension();
+            $warrantyFileNameNew = 'warranty-' . $today . '_' . $slug . '.' . $warrantyFile->getClientOriginalExtension();
 
-            $stream = fopen($warrantyFile->getRealPath(), 'r');
-            if ($stream === false) {
-                return back()->withErrors(['warranty_card' => 'Gagal membuka file garansi untuk upload.']);
+            // Hapus file lama di server penerima
+            if ($warrantyFileName) {
+                Http::withToken(config('services.upload.token'))
+                    ->asForm()->withoutVerifying()
+                    ->post(config('services.upload.url') . '/api/delete_file', [
+                        'file_name' => $warrantyFileName,
+                        'folder'    => 'warranty',
+                    ]);
             }
 
-            try {
-                $ok = $disk->writeStream($warrantyName, $stream);
-                if (is_resource($stream)) fclose($stream);
+            // Upload file baru
+            $uploadResponse = Http::withToken(config('services.upload.token'))
+                ->attach('warranty', fopen($warrantyFile->getRealPath(), 'r'), $warrantyFileNameNew)
+                ->withoutVerifying()
+                ->post(config('services.upload.url') . '/api/do_upload');
 
-                if ($ok === false) {
-                    return back()->withErrors(['warranty_card' => 'FTP gagal upload garansi.']);
-                }
-
-                $data['warranty_card'] = $warrantyName;
-            } catch (FilesystemException | \Exception $e) {
-                return back()->withErrors([
-                    'warranty_card' => 'Gagal upload garansi: '.$e->getMessage()
-                ]);
+            if ($uploadResponse->successful()) {
+                $json = $uploadResponse->json();
+                $warrantyFileName = $json['warranty']['file_name'] ?? $warrantyFileNameNew;
+            } else {
+                return back()->withErrors(['warranty_card' => 'Upload warranty gagal!']);
             }
         }
 
-
-        // === Update product dari Inventory + input user ===
+        // Update data product di database
         $product->update([
             'name'               => $inv['produksi_produk_jadi']['data_produk_jadi']['nama_produk'],
             'slug'               => $slug,
-            'manual_file'        => $data['manual_file'] ?? $product->manual_file,
-            'warranty_card'      => $data['warranty_card'] ?? $product->warranty_card,
+            'manual_file'        => $manualFileName,
+            'warranty_card'      => $warrantyFileName,
             'content'            => $request->content,
             'produk_jadi_list_id'=> $inv['id'],
             'produk_jadi_id'     => $inv['produk_jadi_id'],
@@ -326,62 +315,52 @@ class ProductController extends Controller
             'kode_list'          => $inv['kode_list'],
         ]);
 
-        if ($product->wasChanged('slug')) {
-            // hapus QR lama kalau ada
-            if ($product->qr_code && $disk->exists($product->qr_code)) {
-                $disk->delete($product->qr_code);
-            }
-
-            $qrName = 'qrcode-'.$today.'_'.$slug.'.png';
-            $qrPath = $qrName;
-
-            $result = (new Builder(
-                writer: new PngWriter(),
-                data: route('user.manual', $product->slug),
-                size: 300,
-                margin: 10
-            ))->build();
-
-            try {
-                $ok = $disk->put($qrPath, $result->getString());
-                if ($ok === false) {
-                    return back()->withErrors(['qr_code' => 'FTP gagal menyimpan QR Code.']);
-                }
-                $product->update(['qr_code' => $qrPath]);
-            } catch (FilesystemException | \Exception $e) {
-                return back()->withErrors(['qr_code' => 'Gagal upload QR Code: '.$e->getMessage()]);
-            }
-        }
-
         return redirect()->route('products.index')->with('success', 'Produk berhasil diperbarui!');
     }
-
 
 
     public function destroy(string $id)
     {
         $product = Product::findOrFail($id);
 
-        $disk = Storage::disk('exabyte'); // pakai disk yang sama dengan upload
+        // Hapus file di server penerima
+        $filesToDelete = [
+            'manual'   => $product->manual_file,
+            'warranty' => $product->warranty_card,
+            'qr_code'  => $product->qr_code,
+        ];
 
-        // hapus file manual
-        if ($product->manual_file && $disk->exists($product->manual_file)) {
-            $disk->delete($product->manual_file);
+        // dd($filesToDelete);
+        foreach ($filesToDelete as $folder => $fileName) {
+            if ($fileName) {
+                try {
+                    $response = Http::withToken(config('services.upload.token'))
+                        ->asForm()->withoutVerifying()
+                        ->post(config('services.upload.url') . '/api/delete_file', [
+                            'file_name' => $fileName,
+                            'folder'    => $folder,
+                        ]);
+
+                    if (!$response->successful()) {
+                        // Gagal hapus file di server penerima
+                        return back()->withErrors([
+                            'delete_file' => "Gagal menghapus file {$fileName} di server penerima: " . $response->body()
+                        ]);
+                    }
+                } catch (\Exception $e) {
+                    return back()->withErrors([
+                        'delete_file' => "Error hapus file {$fileName}: " . $e->getMessage()
+                    ]);
+                }
+            }
         }
 
-        // hapus file warranty
-        if ($product->warranty_card && $disk->exists($product->warranty_card)) {
-            $disk->delete($product->warranty_card);
-        }
-
-        // hapus QR
-        if ($product->qr_code && $disk->exists($product->qr_code)) {
-            $disk->delete($product->qr_code);
-        }
-
+        // Hapus record di database
         $product->delete();
 
         return redirect()->route('products.index')->with('success', 'Produk berhasil dihapus!');
     }
+
+
 
 }
