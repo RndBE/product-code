@@ -31,11 +31,11 @@
 @endpush
 
 @section('content')
-<div class="row gy-5 pt-4">
+<div class="row gy-3 pt-4">
     {{-- main --}}
     <div class="col-lg-8">
         {{-- dokumentasi section (tetap seperti sebelum) --}}
-        <section class="glass-card p-4 mb-4">
+        <section class="glass-card p-4">
             <h2 class="mb-3">Dokumentasi Resmi</h2>
             {{-- konten manual dari CKEditor --}}
             {{-- @if($product->content)
