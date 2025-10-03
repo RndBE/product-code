@@ -58,7 +58,7 @@
                 </p>
 
                 <p class="mb-3">
-                    Seluruh dokumen di atas dapat diakses secara digital langsung melalui platform ini.
+                    Seluruh dokumen dapat diakses secara digital langsung melalui platform ini.
                     Dokumen-dokumen tersebut dapat menjadi panduan instalasi, pemeliharaan, maupun sebagai
                     bukti administrasi resmi produk Anda.
                 </p>
@@ -202,11 +202,30 @@
                 <p class="support-small mb-2">Tim support siap membantu: teknis, klaim garansi, atau permintaan dokumen.</p>
 
                 <div class="d-grid gap-2 mb-2">
-                    <a href="tel:+62123456789" class="btn btn-outline-secondary btn-sm">📞 Hubungi: +62 12 3456 789</a>
-                    <a href="mailto:support@example.com" class="btn btn-outline-secondary btn-sm">✉️ Email: support@example.com</a>
+                    <a href="https://wa.me/628112632151?text=Halo%20saya%20ingin%20bertanya" target="_blank" class="btn btn-outline-secondary btn-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        viewBox="0 0 16 16">
+                            <path d="M13.601 2.326A7.928 7.928 0 008 .073C3.589.073.073 3.59.073 8c0 1.414.37 2.793 1.071
+                                    4.001L0 16l4.064-1.058A7.93 7.93 0 008 15.927c4.411 0 7.927-3.516
+                                    7.927-7.927a7.928 7.928 0 00-2.326-5.674zM8 14.563a6.55 6.55 0 01-3.356-.92l-.24-.142-2.408.627.644-2.345-.157-.24A6.551
+                                    6.551 0 011.438 8c0-3.614 2.948-6.563 6.562-6.563 1.753 0 3.401.684
+                                    4.64 1.923A6.532 6.532 0 0114.562 8c0 3.614-2.948 6.563-6.562
+                                    6.563z"/>
+                            <path d="M11.603 9.665c-.197-.099-1.168-.577-1.35-.644-.182-.066-.315-.099-.447.099s-.513.644-.629.775c-.116.132-.232.149-.43.05-.197-.1-.833-.307-1.587-.98-.586-.521-.981-1.163-1.096-1.361-.115-.198-.012-.305.087-.403.089-.088.197-.231.296-.347.099-.116.132-.198.198-.33.066-.132.033-.248-.017-.347-.05-.1-.447-1.079-.612-1.476-.162-.389-.326-.335-.447-.34l-.38-.007c-.132 0-.347.05-.53.248s-.694.678-.694 1.653.71 1.917.81 2.049c.099.132 1.393 2.13 3.379 2.986.472.204.84.326
+                                    1.127.417.474.15.905.129 1.246.078.38-.056 1.168-.477 1.333-.938.164-.462.164-.857.115-.938-.05-.082-.18-.132-.376-.231z"/>
+                        </svg> Hubungi via WhatsApp: 628112632151
+                    </a>
+                    <a href="mailto:info@bejogja.com" class="btn btn-outline-secondary btn-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            class="bi bi-envelope-fill" viewBox="0 0 16 16">
+                            <path d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414.05 3.555zM0 4.697v7.104l5.803-3.558L0 4.697zM6.761 8.83l-6.57
+                            4.027A2 2 0 0 0 2 14h12a2 2 0 0 0 1.808-1.143l-6.57-4.027L8 9.586l-1.239-.757zM16
+                            4.697l-5.803 3.546L16 11.801V4.697z"/>
+                        </svg> Email: info@bejogja.com
+                    </a>
                 </div>
 
-                <small class="muted">Jam kerja: Senin–Jumat, 09:00–17:00</small>
+                <small class="muted">Jam kerja: Senin-Jumat, 09:00-17:00</small>
             </div>
 
             {{-- FAQ singkat --}}
