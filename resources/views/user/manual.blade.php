@@ -83,41 +83,56 @@
 
             <div class="tab-content border p-3 bg-white rounded-bottom" id="docTabsContent">
                 <div class="tab-pane fade show active" id="manual" role="tabpanel">
-                    @if($product->manual_file)
-                        <iframe src="https://docs.google.com/gview?url={{ urlencode('https://stesy.beacontelemetry.com/product/manual/' . $product->manual_file) }}&embedded=true"
-                                style="width:100%; height:600px;"
-                                frameborder="0">
-                        </iframe>
-                    @else
-                        <div class="p-4 text-center muted">Manual belum tersedia.</div>
-                    @endif
+        @if($product->manual_file)
+            @php
+                $manualUrl = 'https://stesy.beacontelemetry.com/product/manual/' . $product->manual_file;
+            @endphp
+
+            <div class="pdf-wrapper">
+                <iframe class="pdf-iframe" data-src="https://docs.google.com/gview?url={{ urlencode($manualUrl) }}&embedded=true"
+                        style="width:100%; height:600px; border:0;"></iframe>
+
+                <div class="mt-2">
+                    <a href="{{ $manualUrl }}" target="_blank" rel="noopener noreferrer">Buka manual di tab baru</a>
                 </div>
-                <div class="tab-pane fade" id="qc" role="tabpanel">
-                    @if($product->qc_certificate)
-                        @php
-                            $pdfUrl = Str::startsWith($product->qc_certificate, ['http://', 'https://'])
-                                ? $product->qc_certificate
-                                : rtrim(config('services.inventory.url_storage'), '/') . '/' . ltrim($product->qc_certificate, '/');
-                        @endphp
-                        <iframe
-                            src="https://docs.google.com/gview?url={{ urlencode($pdfUrl) }}&embedded=true"
-                            style="width:100%; height:600px;"
-                            frameborder="0">
-                        </iframe>
-                    @else
-                        <div class="p-4 text-center text-muted">Sertifikat QC belum tersedia.</div>
-                    @endif
+            </div>
+        @else
+            <div class="p-4 text-center muted">Manual belum tersedia.</div>
+        @endif
+    </div>
+
+    <div class="tab-pane fade" id="qc" role="tabpanel">
+        @if(!empty($qcCertificateUrl))
+            <div class="pdf-wrapper">
+                <iframe class="pdf-iframe" data-src="https://docs.google.com/gview?url={{ urlencode($qcCertificateUrl) }}&embedded=true"
+                        style="width:100%; height:600px; border:0;"></iframe>
+
+                <div class="mt-2">
+                    <a href="{{ $qcCertificateUrl }}" target="_blank" rel="noopener noreferrer">Buka sertifikat QC di tab baru</a>
                 </div>
-                <div class="tab-pane fade" id="warranty" role="tabpanel">
-                    @if($product->warranty_card)
-                        <iframe src="https://docs.google.com/gview?url={{ urlencode('https://stesy.beacontelemetry.com/product/warranty/' . $product->warranty_card) }}&embedded=true"
-                                style="width:100%; height:600px;"
-                                frameborder="0">
-                        </iframe>
-                    @else
-                        <div class="p-4 text-center muted">Dokumen garansi belum tersedia.</div>
-                    @endif
+            </div>
+        @else
+            <div class="p-4 text-center muted">Sertifikat QC belum tersedia atau tidak dapat diakses.</div>
+        @endif
+    </div>
+
+    <div class="tab-pane fade" id="warranty" role="tabpanel">
+        @if($product->warranty_card)
+            @php
+                $warrantyUrl = 'https://stesy.beacontelemetry.com/product/warranty/' . $product->warranty_card;
+            @endphp
+            <div class="pdf-wrapper">
+                <iframe class="pdf-iframe" data-src="https://docs.google.com/gview?url={{ urlencode($warrantyUrl) }}&embedded=true"
+                        style="width:100%; height:600px; border:0;"></iframe>
+
+                <div class="mt-2">
+                    <a href="{{ $warrantyUrl }}" target="_blank" rel="noopener noreferrer">Buka garansi di tab baru</a>
                 </div>
+            </div>
+        @else
+            <div class="p-4 text-center muted">Dokumen garansi belum tersedia.</div>
+        @endif
+    </div>
             </div>
         </section>
     </div>
@@ -224,4 +239,40 @@
         </aside>
     </div>
 </div>
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Lazy load iframe content when a tab becomes active (Bootstrap)
+    const tabLinks = document.querySelectorAll('[data-bs-toggle="tab"], [data-toggle="tab"]');
+
+    function loadIframeForPane(pane) {
+        const iframe = pane.querySelector('iframe.pdf-iframe');
+        if (!iframe) return;
+        if (!iframe.getAttribute('src') && iframe.dataset.src) {
+            iframe.setAttribute('src', iframe.dataset.src);
+        }
+    }
+
+    // Load first visible (active) pane on page load
+    document.querySelectorAll('.tab-pane.show.active').forEach(pane => loadIframeForPane(pane));
+
+    // Listen for bootstrap tab shown events (v5 & fallback v4)
+    tabLinks.forEach(link => {
+        link.addEventListener('shown.bs.tab', function (e) {
+            const targetSelector = e.target.getAttribute('data-bs-target') || e.target.getAttribute('href');
+            if (!targetSelector) return;
+            const pane = document.querySelector(targetSelector);
+            if (pane) loadIframeForPane(pane);
+        });
+
+        // fallback for BS4
+        link.addEventListener('shown.bs.tab', function (e) {
+            const targetSelector = e.target.getAttribute('href');
+            const pane = document.querySelector(targetSelector);
+            if (pane) loadIframeForPane(pane);
+        });
+    });
+});
+</script>
+@endpush
 @endsection
