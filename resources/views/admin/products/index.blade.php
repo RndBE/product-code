@@ -124,16 +124,26 @@
                         <div class="small-muted">Updated: {{ $product->updated_at->format('d M Y') }}</div>
                     </td>
 
-                    <td class="align-middle action-btns">
-                        <a href="{{ route('products.edit', $product->id) }}" class="btn btn-sm btn-outline-warning">Edit</a>
-                        <a href="{{ route('user.manual', $product->slug) }}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>
+                    <td class="align-middle">
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="{{ route('products.edit', $product->id) }}"
+                            class="btn btn-sm btn-outline-warning">
+                                ✏️ Edit
+                            </a>
 
-                        <form action="{{ route('products.destroy', $product->id) }}" method="POST" class="d-inline delete-form">
-                            @csrf
-                            @method('DELETE')
-                            <button type="button" class="btn btn-sm btn-outline-danger btn-delete">Hapus</button>
-                        </form>
+                            <a href="{{ route('user.manual', $product->slug) }}" target="_blank"
+                            class="btn btn-sm btn-outline-primary">
+                                📄 View
+                            </a>
 
+                            <form action="{{ route('products.destroy', $product->id) }}" method="POST" class="delete-form">
+                                @csrf
+                                @method('DELETE')
+                                <button type="button" class="btn btn-sm btn-outline-danger btn-delete">
+                                    🗑️ Hapus
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 @empty
