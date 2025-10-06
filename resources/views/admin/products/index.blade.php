@@ -2,10 +2,20 @@
 
 @push('styles')
 <style>
-    /* sedikit styling untuk admin table */
-    .admin-header { margin-top: 1rem; margin-bottom: 1rem; }
-    .product-thumb { width:70px; height:50px; object-fit:cover; border-radius:6px; border:1px solid rgba(0,0,0,0.06); }
-    .small-muted { color: var(--muted); font-size:.9rem; }
+    .admin-header {
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+    }
+    .product-thumb {
+        width:70px; height:50px;
+        object-fit:cover;
+        border-radius:6px;
+        border:1px solid rgba(0,0,0,0.06);
+    }
+    .small-muted {
+        color: var(--muted);
+        font-size:.9rem;
+    }
     .action-btns .btn { min-width:72px; }
     .table thead th { vertical-align: middle; }
     .search-input { max-width:520px; }
@@ -19,8 +29,16 @@
             <div class="small-muted">Kelola produk, manual, sertifikat, dan dokumen resmi.</div>
         </div>
 
+        {{-- Action buttons --}}
         <div class="d-flex gap-2 align-items-center">
-            <a href="{{ route('products.create') }}" class="btn btn-primary">+ Tambah Produk</a>
+            <a href="{{ route('products.create') }}" class="btn btn-primary">
+                ➕ Tambah Produk
+            </a>
+
+            {{-- Tombol print label ada di sini, bukan di bawah tabel --}}
+            <button type="submit" form="bulkPrintForm" id="printSelectedBtn" class="btn btn-success" disabled>
+                🖨️ Print Label Terpilih
+            </button>
         </div>
     </div>
 
@@ -142,7 +160,6 @@
                                 class="btn btn-sm btn-outline-primary">
                                     📄 View
                                 </a>
-                                {{-- Tombol delete hanya tombol biasa, bukan form --}}
                                 <button type="button"
                                         class="btn btn-sm btn-outline-danger btn-delete"
                                         data-id="{{ $product->id }}"
@@ -154,127 +171,124 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="text-center small-muted py-4">Tidak ada produk ditemukan.</td>
+                        <td colspan="8" class="text-center small-muted py-4">Tidak ada produk ditemukan.</td>
                     </tr>
                     @endforelse
                 </tbody>
             </table>
-            <div class="mt-3">
-                <button type="submit" id="printSelectedBtn" class="btn btn-success" disabled>
-                    🖨️ Print Label Terpilih
-                </button>
-            </div>
         </form>
     </div>
     @push('scripts')
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                const selectAll = document.getElementById('selectAll');
-                const checkboxes = document.querySelectorAll('.rowCheckbox');
-                const printBtn = document.getElementById('printSelectedBtn');
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const selectAll = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('.rowCheckbox');
+            const printBtn = document.getElementById('printSelectedBtn');
 
-                function toggleButton() {
-                    const checked = document.querySelectorAll('.rowCheckbox:checked').length;
-                    printBtn.disabled = checked === 0;
-                }
+            function toggleButton() {
+                const checked = document.querySelectorAll('.rowCheckbox:checked').length;
+                printBtn.disabled = checked === 0;
+            }
 
-                selectAll.addEventListener('change', function () {
-                    checkboxes.forEach(cb => cb.checked = selectAll.checked);
-                    toggleButton();
-                });
-
-                checkboxes.forEach(cb => cb.addEventListener('change', toggleButton));
+            selectAll.addEventListener('change', function () {
+                checkboxes.forEach(cb => cb.checked = selectAll.checked);
+                toggleButton();
             });
-        </script>
 
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                // Delete dengan form dinamis (tidak nested)
-                document.querySelectorAll('.btn-delete').forEach(function(btn) {
-                    btn.addEventListener('click', function () {
-                        const id = this.dataset.id;
-                        const name = this.dataset.name;
-                        const serial_number = this.dataset.serial  || 'produk ini';
+            checkboxes.forEach(cb => cb.addEventListener('change', toggleButton));
+        });
+    </script>
 
-                        Swal.fire({
-                            title: `Hapus ${name}(${serial_number})?`,
-                            text: "Tindakan ini tidak bisa dikembalikan.",
-                            icon: 'warning',
-                            showCancelButton: true,
-                            confirmButtonColor: '#d33',
-                            cancelButtonColor: '#6c757d',
-                            confirmButtonText: 'Ya, Hapus',
-                            cancelButtonText: 'Batal'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                // buat form dinamis dan submit
-                                const form = document.createElement('form');
-                                form.method = 'POST';
-                                // action ke route destroy: admin/products/{id}
-                                form.action = "{{ url('admin/products') }}/" + id;
-                                // CSRF token
-                                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-                                const inputToken = document.createElement('input');
-                                inputToken.type = 'hidden';
-                                inputToken.name = '_token';
-                                inputToken.value = token;
-                                form.appendChild(inputToken);
-                                // method spoofing DELETE
-                                const method = document.createElement('input');
-                                method.type = 'hidden';
-                                method.name = '_method';
-                                method.value = 'DELETE';
-                                form.appendChild(method);
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Delete dengan form dinamis (tidak nested)
+            document.querySelectorAll('.btn-delete').forEach(function(btn) {
+                btn.addEventListener('click', function () {
+                    const id = this.dataset.id;
+                    const name = this.dataset.name;
+                    const serial_number = this.dataset.serial  || 'produk ini';
 
-                                document.body.appendChild(form);
-                                form.submit();
-                            }
-                        });
+                    Swal.fire({
+                        title: `Hapus ${name}(${serial_number})?`,
+                        text: "Tindakan ini tidak bisa dikembalikan.",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Ya, Hapus',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // buat form dinamis dan submit
+                            const form = document.createElement('form');
+                            form.method = 'POST';
+                            // action ke route destroy: admin/products/{id}
+                            form.action = "{{ url('admin/products') }}/" + id;
+                            // CSRF token
+                            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                            const inputToken = document.createElement('input');
+                            inputToken.type = 'hidden';
+                            inputToken.name = '_token';
+                            inputToken.value = token;
+                            form.appendChild(inputToken);
+                            // method spoofing DELETE
+                            const method = document.createElement('input');
+                            method.type = 'hidden';
+                            method.name = '_method';
+                            method.value = 'DELETE';
+                            form.appendChild(method);
+
+                            document.body.appendChild(form);
+                            form.submit();
+                        }
                     });
                 });
             });
-        </script>
+        });
+    </script>
 
-        {{-- DataTables JS & CSS --}}
-        <script>
-            $(document).ready(function () {
-                $('#productsTable').DataTable({
-                    "pageLength": 10,
-                    "ordering": true,
-                    "language": {
-                        "search": "Cari:",
-                        "lengthMenu": "Tampilkan _MENU_ produk per halaman",
-                        "info": "Menampilkan _START_ - _END_ dari _TOTAL_ produk",
-                        "paginate": {
-                            "previous": "Sebelumnya",
-                            "next": "Berikutnya"
-                        }
-                    }
-                });
-            });
-        </script>
-
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                function autoHideAlert(alertId, timeout = 4000) {
-                    const alertBox = document.getElementById(alertId);
-                    if (alertBox) {
-                        setTimeout(() => {
-                            // Tambahkan animasi fade out
-                            alertBox.classList.add('fade');
-                            alertBox.classList.remove('show');
-
-                            // Hapus elemen dari DOM setelah animasi selesai (300ms default Bootstrap)
-                            setTimeout(() => {
-                                alertBox.remove();
-                            }, 300);
-                        }, timeout);
+    {{-- DataTables JS & CSS --}}
+    <script>
+        $(document).ready(function () {
+            $('#productsTable').DataTable({
+                "pageLength": 10,
+                "ordering": true,
+                "language": {
+                    "search": "Cari:",
+                    "lengthMenu": "Tampilkan _MENU_ produk per halaman",
+                    "info": "Menampilkan _START_ - _END_ dari _TOTAL_ produk",
+                    "paginate": {
+                        "previous": "Sebelumnya",
+                        "next": "Berikutnya"
                     }
                 }
-
-                autoHideAlert('alert-success', 4000); // success 4 detik
-                autoHideAlert('alert-error', 6000);   // error 6 detik
             });
-        </script>
-    @endpush
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            function autoHideAlert(alertId, timeout = 4000) {
+                const alertBox = document.getElementById(alertId);
+                if (alertBox) {
+                    setTimeout(() => {
+                        // Tambahkan animasi fade out
+                        alertBox.classList.add('fade');
+                        alertBox.classList.remove('show');
+
+                        // Hapus elemen dari DOM setelah animasi selesai (300ms default Bootstrap)
+                        setTimeout(() => {
+                            alertBox.remove();
+                        }, 300);
+                    }, timeout);
+                }
+            }
+
+            autoHideAlert('alert-success', 4000); // success 4 detik
+            autoHideAlert('alert-error', 6000);   // error 6 detik
+        });
+    </script>
+@endpush
 @endsection
+
+
