@@ -23,8 +23,41 @@ Route::post('/admin/logout', [AuthController::class, 'logout'])->name('admin.log
 
 // Proteksi route admin: pakai session auth + custom isAdmin
 Route::middleware(['auth', 'isAdmin'])->prefix('admin')->group(function () {
-    Route::resource('products', ProductController::class);
+
+    // pastikan didefinisikan sebelum {id}
+    Route::post('products/bulk-print', [ProductController::class, 'bulkPrint'])
+        ->name('products.bulkPrint');
+
+    // Index
+    Route::get('products', [ProductController::class, 'index'])
+        ->name('products.index');
+
+    // Create form
+    Route::get('products/create', [ProductController::class, 'create'])
+        ->name('products.create');
+
+    // Store
+    Route::post('products', [ProductController::class, 'store'])
+        ->name('products.store');
+
+    // Show detail
+    Route::get('products/{product}', [ProductController::class, 'show'])
+        ->name('products.show');
+
+    // Edit form
+    Route::get('products/{product}/edit', [ProductController::class, 'edit'])
+        ->name('products.edit');
+
+    // Update
+    Route::put('products/{product}', [ProductController::class, 'update'])
+        ->name('products.update');
+    Route::patch('products/{product}', [ProductController::class, 'update']);
+
+    // Destroy
+    Route::delete('products/{product}', [ProductController::class, 'destroy'])
+        ->name('products.destroy');
 });
+
 
 
 

@@ -51,6 +51,20 @@ class ProductController extends Controller
 
         return view('admin.products.index', compact('products'));
     }
+    public function bulkPrint(Request $request)
+    {
+        // dd('masuk controller', $request->all());
+        $ids = $request->input('selected_products', []);
+
+        if (empty($ids)) {
+            return redirect()->back()->with('error', 'Tidak ada produk dipilih.');
+        }
+
+        $products = Product::whereIn('id', $ids)->get();
+        // dd($products);
+        // contoh sederhana: tampilkan view label
+        return view('admin.products.print-labels', compact('products'));
+    }
 
     public function create()
     {
