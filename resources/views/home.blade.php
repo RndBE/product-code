@@ -249,7 +249,7 @@
                         <div class="muted-small">
                             Lihat bagian belakang atau samping <strong>Data Logger</strong>.
                             Terdapat stiker putih dengan kode batang (barcode) dan nomor seri (S/N).
-                            Gunakan kode angka/huruf yang tertera setelah tulisan <code>S/N:</code>.
+                            Gunakan kode angka/huruf yang tertera.
                         </div>
                     </div>
                 </div>
