@@ -160,6 +160,16 @@
                                 class="btn btn-sm btn-outline-primary">
                                     📄 View
                                 </a>
+
+                                <button type="button"
+            class="btn btn-sm btn-outline-success btn-download-label"
+            data-id="{{ $product->id }}"
+            data-name="{{ $product->name }}"
+            data-serial="{{ $product->serial_number }}"
+            data-qr="{{ 'https://stesy.beacontelemetry.com/product/qr_code/'. $product->qr_code }}">
+        📥 Label PNG
+    </button>
+
                                 <button type="button"
                                         class="btn btn-sm btn-outline-danger btn-delete"
                                         data-id="{{ $product->id }}"
@@ -179,6 +189,87 @@
         </form>
     </div>
     @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.btn-download-label').forEach(btn => {
+        btn.addEventListener('click', async function () {
+            const name = this.dataset.name;
+            const serial = this.dataset.serial;
+            const qrUrl = this.dataset.qr;
+
+            // Elemen label
+            const label = document.createElement('div');
+            label.classList.add('label-download');
+            label.style.cssText = `
+                width: 250px;
+                height: 150px;
+                border: 1px solid #000;
+                border-radius: 6px;
+                margin: 10px;
+                padding: 8px;
+                display: inline-block;
+                text-align: center;
+                font-family: Arial, sans-serif;
+                background: #fff;
+                page-break-inside: avoid;
+            `;
+
+            // Struktur HTML label
+            label.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                    <div style="flex:1;text-align:center;">
+                        <img src="{{ asset('img/logo_be2.png') }}"
+                             alt="Logo"
+                             style="display:inline-block;max-width:350px;max-height:35px;padding-top:20px;">
+                    </div>
+                    <div style="width:80px;height:80px;">
+                        ${qrUrl ? `<img src="${qrUrl}" crossOrigin="anonymous" style="width:80px;height:80px;">` : ''}
+                    </div>
+                </div>
+
+                <div style="margin-top:5px;font-size:14px;font-weight:bold;">${name}</div>
+
+                <svg id="barcode-${serial}"
+                     class="barcode"
+                     jsbarcode-format="CODE128"
+                     jsbarcode-value="${serial}"
+                     jsbarcode-textmargin="0"
+                     jsbarcode-fontsize="24"
+                     jsbarcode-height="50">
+                </svg>
+            `;
+
+            document.body.appendChild(label);
+
+            // Generate barcode
+            JsBarcode(`#barcode-${serial}`).init();
+
+            // Convert ke PNG (gunakan CORS agar QR dari domain lain ikut dirender)
+            const canvas = await html2canvas(label, {
+                scale: 3,
+                useCORS: true,
+                logging: false,
+            });
+
+            // Download hasil
+            const link = document.createElement('a');
+            link.download = `${serial}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+
+            // Bersihkan elemen sementara
+            document.body.removeChild(label);
+        });
+    });
+});
+</script>
+
+
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const selectAll = document.getElementById('selectAll');
