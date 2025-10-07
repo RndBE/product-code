@@ -56,6 +56,7 @@ Route::middleware(['auth', 'isAdmin'])->prefix('admin')->group(function () {
     // Destroy
     Route::delete('products/{product}', [ProductController::class, 'destroy'])
         ->name('products.destroy');
+
 });
 
 

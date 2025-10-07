@@ -16,10 +16,28 @@ use Illuminate\Http\Client\ConnectionException;
 
 class ProductController extends Controller
 {
-    public function index() {
+    public function index(Request $request)
+    {
         $products = Product::latest()->paginate(10);
 
         foreach ($products as $product) {
+            // Ambil QR Code untuk setiap produk
+            $qrUrl = 'https://stesy.beacontelemetry.com/product/qr_code/' . $product->qr_code;
+            $qrBase64 = null;
+
+            try {
+                $imageData = file_get_contents($qrUrl);
+                if ($imageData) {
+                    $qrBase64 = 'data:image/png;base64,' . base64_encode($imageData);
+                }
+            } catch (\Exception $e) {
+                $qrBase64 = null;
+            }
+
+            // Inject base64 QR ke tiap produk
+            $product->qr_base64 = $qrBase64;
+
+            // --- Data tambahan dari API eksternal ---
             try {
                 $response = Http::withHeaders([
                     'X-API-KEY' => config('services.inventory.key'),
@@ -29,18 +47,12 @@ class ProductController extends Controller
                 if ($response->successful()) {
                     $inv = $response->json('data');
 
-                    // Sertifikat QC
-                    $qcCertificate = null;
-                    if (!empty($inv['qc2']['laporan_qc'])) {
-                        $qcCertificate = $inv['qc2']['laporan_qc'];
-                    } elseif (!empty($inv['qc1']['laporan_qc'])) {
-                        $qcCertificate = $inv['qc1']['laporan_qc'];
-                    }
+                    $qcCertificate = $inv['qc2']['laporan_qc']
+                        ?? $inv['qc1']['laporan_qc']
+                        ?? null;
 
-                    // Gambar produk jadi
                     $gambar = $inv['produksi_produk_jadi']['data_produk_jadi']['gambar'] ?? null;
 
-                    // inject ke tiap product
                     $product->qc_certificate = $qcCertificate;
                     $product->gambar_produk_jadi = $gambar;
                 }
@@ -51,6 +63,7 @@ class ProductController extends Controller
 
         return view('admin.products.index', compact('products'));
     }
+    
     public function bulkPrint(Request $request)
     {
         // dd('masuk controller', $request->all());

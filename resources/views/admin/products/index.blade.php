@@ -19,7 +19,85 @@
     .action-btns .btn { min-width:72px; }
     .table thead th { vertical-align: middle; }
     .search-input { max-width:520px; }
+
+    .label {
+        border: 1px solid #000;
+        border-radius: 8px;
+        margin: 10px;
+        padding: 6px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between; /* membuat item paling bawah tetap di bawah */
+        text-align: center;
+        background: #fff;
+        page-break-inside: avoid;
+        width: 60mm;   /* Lebar label fisik */
+        height: 48mm;  /* Tinggi label fisik */
+        box-sizing: border-box;
+    }
+
+    .label-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 4px;
+    }
+
+    .label-header .logo {
+        flex: 1;
+        text-align: center;
+    }
+
+    .label-header .logo img {
+        display: inline-block;
+        max-width: 100px;
+        max-height: 60px;
+    }
+
+    .label-header .qr img {
+        width: 90px;
+        height: 90px;
+    }
+
+    /* Container untuk nama + barcode di bawah */
+    .label-footer {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start; /* nama di pojok kiri */
+        justify-content: flex-end;
+    }
+
+    /* Nama produk di kiri atas barcode */
+    .product-name {
+        font-size: 13px;
+        font-weight: 600;
+        margin: 0;
+        padding: 0;
+        line-height: 1;
+    }
+
+    /* Barcode di bawah nama, tanpa jarak berlebih */
+    .barcode {
+        width: 100%;
+        height: 50px;
+        margin-top: 2px;
+        margin-bottom: 0;
+    }
+
+    .download-btn {
+        margin-top: 10px;
+        background: #007bff;
+        color: white;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+    .download-btn:hover {
+        background: #0056b3;
+    }
 </style>
+
 @endpush
 
 @section('content')
@@ -135,13 +213,49 @@
                             </div>
                         </td>
 
-                        <td class="align-middle">
-                            @if($product->qr_code)
-                                <img src="{{ 'https://stesy.beacontelemetry.com/product/qr_code/'. $product->qr_code }}"
-                                    alt="QR Code" style="width:100px; height:auto;">
-                            @else
-                                <span class="small-muted">—</span>
-                            @endif
+                        <td class="align-middle text-center">
+                            {{-- Label Produk --}}
+                            <div class="label-container">
+                                <div class="label shadow-sm border rounded bg-white p-2 mx-auto label-downloadable"
+                                    id="label-{{ $product->id }}">
+
+                                    {{-- Header Logo & QR --}}
+                                    <div class="d-flex justify-content-between align-items-center mb-1 label-header">
+                                        <div class="logo">
+                                            <img src="{{ asset('img/logo_be2.png') }}" alt="Logo" class="logo">
+                                        </div>
+                                        <div class="qr">
+                                            @if($product->qr_base64)
+                                                <img src="{{ $product->qr_base64 }}" alt="QR" class="qr-img">
+                                            @else
+                                                <img src="{{ asset('img/no_qr.png') }}" alt="No QR" class="qr-img">
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    {{-- Footer (Nama + Barcode) di bawah label --}}
+                                    <div class="label-footer">
+                                        <div class="product-name">
+                                            {{ $product->name ?? '-' }}
+                                        </div>
+
+                                        <svg class="barcode"
+                                            jsbarcode-format="CODE128"
+                                            jsbarcode-value="{{ $product->serial_number ?? '000000' }}"
+                                            jsbarcode-textmargin="0"
+                                            jsbarcode-fontsize="50"
+                                            jsbarcode-width="5"
+                                            jsbarcode-height="120">
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                <button type="button"
+                                    class="btn btn-sm btn-outline-primary mt-2 download-label-btn"
+                                    data-target="label-{{ $product->id }}">
+                                    ⬇️ Download PNG
+                                </button>
+                            </div>
                         </td>
 
                         <td class="align-middle">
@@ -162,15 +276,6 @@
                                 </a>
 
                                 <button type="button"
-            class="btn btn-sm btn-outline-success btn-download-label"
-            data-id="{{ $product->id }}"
-            data-name="{{ $product->name }}"
-            data-serial="{{ $product->serial_number }}"
-            data-qr="{{ 'https://stesy.beacontelemetry.com/product/qr_code/'. $product->qr_code }}">
-        📥 Label PNG
-    </button>
-
-                                <button type="button"
                                         class="btn btn-sm btn-outline-danger btn-delete"
                                         data-id="{{ $product->id }}"
                                         data-name="{{ $product->name }}" data-serial="{{ $product->serial_number }}">
@@ -189,86 +294,57 @@
         </form>
     </div>
     @push('scripts')
+    <!-- Script JS -->
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.btn-download-label').forEach(btn => {
-        btn.addEventListener('click', async function () {
-            const name = this.dataset.name;
-            const serial = this.dataset.serial;
-            const qrUrl = this.dataset.qr;
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            JsBarcode(".barcode").init();
 
-            // Elemen label
-            const label = document.createElement('div');
-            label.classList.add('label-download');
-            label.style.cssText = `
-                width: 250px;
-                height: 150px;
-                border: 1px solid #000;
-                border-radius: 6px;
-                margin: 10px;
-                padding: 8px;
-                display: inline-block;
-                text-align: center;
-                font-family: Arial, sans-serif;
-                background: #fff;
-                page-break-inside: avoid;
-            `;
+            const MM_TO_PX = 3.78;
+            const LABEL_WIDTH_MM = 60;
+            const LABEL_HEIGHT_MM = 48; // tinggi disamakan 48mm
+            const LABEL_WIDTH_PX = LABEL_WIDTH_MM * MM_TO_PX;
+            const LABEL_HEIGHT_PX = LABEL_HEIGHT_MM * MM_TO_PX;
 
-            // Struktur HTML label
-            label.innerHTML = `
-                <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-                    <div style="flex:1;text-align:center;">
-                        <img src="{{ asset('img/logo_be2.png') }}"
-                             alt="Logo"
-                             style="display:inline-block;max-width:350px;max-height:35px;padding-top:20px;">
-                    </div>
-                    <div style="width:80px;height:80px;">
-                        ${qrUrl ? `<img src="${qrUrl}" crossOrigin="anonymous" style="width:80px;height:80px;">` : ''}
-                    </div>
-                </div>
+            document.querySelectorAll('.download-label-btn').forEach(button => {
+                button.addEventListener('click', async function () {
+                    const targetId = this.dataset.target;
+                    const labelElement = document.getElementById(targetId);
+                    if (!labelElement) return;
 
-                <div style="margin-top:5px;font-size:14px;font-weight:bold;">${name}</div>
+                    JsBarcode(labelElement.querySelector(".barcode")).init();
 
-                <svg id="barcode-${serial}"
-                     class="barcode"
-                     jsbarcode-format="CODE128"
-                     jsbarcode-value="${serial}"
-                     jsbarcode-textmargin="0"
-                     jsbarcode-fontsize="24"
-                     jsbarcode-height="50">
-                </svg>
-            `;
+                    // Simpan style lama
+                    const oldStyle = labelElement.getAttribute('style');
 
-            document.body.appendChild(label);
+                    // Pastikan ukuran sesuai mm sebelum render
+                    labelElement.style.width = LABEL_WIDTH_PX + 'px';
+                    labelElement.style.height = LABEL_HEIGHT_PX + 'px';
+                    labelElement.style.background = '#fff';
+                    labelElement.style.border = '1px solid #000';
+                    labelElement.style.padding = '4px';
 
-            // Generate barcode
-            JsBarcode(`#barcode-${serial}`).init();
+                    const canvas = await html2canvas(labelElement, {
+                        scale: 6,
+                        useCORS: true,
+                        backgroundColor: '#ffffff',
+                        width: LABEL_WIDTH_PX,
+                        height: LABEL_HEIGHT_PX,
+                    });
 
-            // Convert ke PNG (gunakan CORS agar QR dari domain lain ikut dirender)
-            const canvas = await html2canvas(label, {
-                scale: 3,
-                useCORS: true,
-                logging: false,
+                    // Kembalikan style lama
+                    labelElement.setAttribute('style', oldStyle || '');
+
+                    const link = document.createElement('a');
+                    link.download = `Label_{{ $product->serial_number ?? 'produk' }}_{{ Str::slug($product->name ?? 'Produk') }}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                });
             });
-
-            // Download hasil
-            const link = document.createElement('a');
-            link.download = `${serial}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-
-            // Bersihkan elemen sementara
-            document.body.removeChild(label);
         });
-    });
-});
-</script>
-
-
+    </script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
