@@ -55,8 +55,8 @@
     }
 
     .label-header .qr img {
-        width: 90px;
-        height: 90px;
+        width: 65px;
+        height: 65px;
     }
 
     /* Container untuk nama + barcode di bawah */
@@ -338,7 +338,9 @@
                     labelElement.setAttribute('style', oldStyle || '');
 
                     const link = document.createElement('a');
-                    link.download = `Label_{{ $product->serial_number ?? 'produk' }}_{{ Str::slug($product->name ?? 'Produk') }}.png`;
+                    const productName = "{{ $product->name ?? 'produk' }}";      // Nama produk
+                    const serialNumber = "{{ $product->serial_number ?? '000000' }}";  // Serial
+                    link.download = `Label_${serialNumber}_${productName}.png`;
                     link.href = canvas.toDataURL('image/png');
                     link.click();
                 });
