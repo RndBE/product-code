@@ -20,68 +20,85 @@
     .table thead th { vertical-align: middle; }
     .search-input { max-width:520px; }
 
+    .label-container {
+        text-align: center;
+    }
+
     .label {
         border: 1px solid #000;
-        border-radius: 8px;
-        margin: 10px;
-        padding: 6px;
+        border-radius: 6px;
         display: flex;
         flex-direction: column;
-        justify-content: space-between; /* membuat item paling bawah tetap di bawah */
+        justify-content: center;
         text-align: center;
         background: #fff;
-        page-break-inside: avoid;
-        width: 60mm;   /* Lebar label fisik */
-        height: 48mm;  /* Tinggi label fisik */
+        width: 70mm;
+        height: 24mm;
+        padding: 2px;
         box-sizing: border-box;
     }
 
-    .label-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 4px;
-    }
-
-    .label-header .logo {
-        flex: 1;
-        text-align: center;
-    }
-
-    .label-header .logo img {
-        display: inline-block;
-        max-width: 100px;
-        max-height: 60px;
-    }
-
-    .label-header .qr img {
-        width: 65px;
-        height: 65px;
-    }
-
-    /* Container untuk nama + barcode di bawah */
-    .label-footer {
+    .label-left {
         display: flex;
         flex-direction: column;
-        align-items: flex-start; /* nama di pojok kiri */
-        justify-content: flex-end;
+        flex: 3; /* kolom kiri lebih lebar */
+        padding-right: 2px;
     }
 
-    /* Nama produk di kiri atas barcode */
-    .product-name {
-        font-size: 13px;
+    .label-left .logo img {
+        max-width: 18mm; /* lebih lebar */
+        max-height: 6mm;
+    }
+
+    .product-info {
+        font-size: 9px;
+        line-height: 1.2;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #000;   /* border hitam */
+        border-radius: 3px;        /* sudut agak melengkung */
+        padding: 2px;              /* jarak teks ke border */
+    }
+
+
+    .info-row {
+        display: flex;
+        justify-content: space-between; /* Nama kiri, nilai kanan */
+    }
+
+    .product-info .info-row {
+        display: flex;
+        margin-bottom: 1px; /* jarak antar baris */
+    }
+
+    .field-name {
         font-weight: 600;
-        margin: 0;
-        padding: 0;
-        line-height: 1;
+        background-color: #000;
+        color: #fff;
+        padding: 0 2px; /* jarak kiri-kanan */
+        min-width: 18%; /* pastikan semua field name sejajar */
+        text-align: right;
+        font-size: 11px;
     }
 
-    /* Barcode di bawah nama, tanpa jarak berlebih */
-    .barcode {
-        width: 100%;
-        height: 50px;
-        margin-top: 2px;
-        margin-bottom: 0;
+    .field-value {
+        flex: 1;
+        text-align: left;
+        font-size: 11px;
+        padding-left: 2px; /* jarak nilai ke field name */
+    }
+
+
+    .label-right {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex: 1; /* kolom kanan lebih kecil */
+    }
+
+    .label-right img {
+        width: 16mm;  /* lebih kecil agar proporsional */
+        height: 16mm;
     }
 
     .download-btn {
@@ -216,37 +233,39 @@
                         <td class="align-middle text-center">
                             {{-- Label Produk --}}
                             <div class="label-container">
-                                <div class="label shadow-sm border rounded bg-white p-2 mx-auto label-downloadable"
+                                <div class="label shadow-sm border rounded bg-white p-1 mx-auto label-downloadable"
                                     id="label-{{ $product->id }}">
 
-                                    {{-- Header Logo & QR --}}
-                                    <div class="d-flex justify-content-between align-items-center mb-1 label-header">
-                                        <div class="logo">
-                                            <img src="{{ asset('img/logo_be2.png') }}" alt="Logo" class="logo">
+                                    <div class="d-flex h-100">
+                                        {{-- Kolom kiri: Logo + Teks info (2/3 lebar) --}}
+                                        <div class="label-left d-flex flex-column">
+                                            <div class="logo text-center mb-1">
+                                                <img src="{{ asset('img/logo_be2.png') }}" alt="Logo">
+                                            </div>
+
+                                            <div class="product-info">
+                                                <div class="info-row">
+                                                    <div class="field-name">Web:</div>
+                                                    <div class="field-value">product.be-jogja.com</div>
+                                                </div>
+                                                <div class="info-row">
+                                                    <div class="field-name">P/N:</div>
+                                                    <div class="field-value">{{ $product->name ?? '-' }}</div>
+                                                </div>
+                                                <div class="info-row">
+                                                    <div class="field-name">S/N:</div>
+                                                    <div class="field-value">{{ $product->serial_number ?? '-' }}</div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="qr">
+                                        {{-- Kolom kanan: QR (1/3 lebar) --}}
+                                        <div class="label-right d-flex justify-content-center align-items-center">
                                             @if($product->qr_base64)
                                                 <img src="{{ $product->qr_base64 }}" alt="QR" class="qr-img">
                                             @else
                                                 <img src="{{ asset('img/no_qr.png') }}" alt="No QR" class="qr-img">
                                             @endif
                                         </div>
-                                    </div>
-
-                                    {{-- Footer (Nama + Barcode) di bawah label --}}
-                                    <div class="label-footer">
-                                        <div class="product-name">
-                                            {{ $product->name ?? '-' }}
-                                        </div>
-
-                                        <svg class="barcode"
-                                            jsbarcode-format="CODE128"
-                                            jsbarcode-value="{{ $product->serial_number ?? '000000' }}"
-                                            jsbarcode-textmargin="0"
-                                            jsbarcode-fontsize="50"
-                                            jsbarcode-width="5"
-                                            jsbarcode-height="120">
-                                        </svg>
                                     </div>
                                 </div>
 
@@ -300,11 +319,9 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            JsBarcode(".barcode").init();
-
             const MM_TO_PX = 3.78;
-            const LABEL_WIDTH_MM = 60;
-            const LABEL_HEIGHT_MM = 48; // tinggi disamakan 48mm
+            const LABEL_WIDTH_MM = 70;
+            const LABEL_HEIGHT_MM = 24; // ukuran label 24mm
             const LABEL_WIDTH_PX = LABEL_WIDTH_MM * MM_TO_PX;
             const LABEL_HEIGHT_PX = LABEL_HEIGHT_MM * MM_TO_PX;
 
@@ -314,17 +331,16 @@
                     const labelElement = document.getElementById(targetId);
                     if (!labelElement) return;
 
-                    JsBarcode(labelElement.querySelector(".barcode")).init();
-
-                    // Simpan style lama
-                    const oldStyle = labelElement.getAttribute('style');
-
-                    // Pastikan ukuran sesuai mm sebelum render
+                    // Tampilkan sementara elemen agar html2canvas bisa render
+                    labelElement.style.position = 'absolute';
+                    labelElement.style.left = '-9999px';
+                    labelElement.style.top = '0';
                     labelElement.style.width = LABEL_WIDTH_PX + 'px';
                     labelElement.style.height = LABEL_HEIGHT_PX + 'px';
                     labelElement.style.background = '#fff';
                     labelElement.style.border = '1px solid #000';
-                    labelElement.style.padding = '4px';
+                    labelElement.style.padding = '2px';
+                    labelElement.style.display = 'flex';
 
                     const canvas = await html2canvas(labelElement, {
                         scale: 6,
@@ -334,12 +350,20 @@
                         height: LABEL_HEIGHT_PX,
                     });
 
-                    // Kembalikan style lama
-                    labelElement.setAttribute('style', oldStyle || '');
+                    // Kembalikan display semula
+                    labelElement.style.position = '';
+                    labelElement.style.left = '';
+                    labelElement.style.top = '';
+                    labelElement.style.width = '';
+                    labelElement.style.height = '';
+                    labelElement.style.background = '';
+                    labelElement.style.border = '';
+                    labelElement.style.padding = '';
+                    labelElement.style.display = '';
 
                     const link = document.createElement('a');
-                    const productName = "{{ $product->name ?? 'produk' }}";      // Nama produk
-                    const serialNumber = "{{ $product->serial_number ?? '000000' }}";  // Serial
+                    const productName = "{{ $product->name ?? 'produk' }}";
+                    const serialNumber = "{{ $product->serial_number ?? '000000' }}";
                     link.download = `Label_${serialNumber}_${productName}.png`;
                     link.href = canvas.toDataURL('image/png');
                     link.click();
