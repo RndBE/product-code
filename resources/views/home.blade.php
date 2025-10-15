@@ -283,7 +283,7 @@
                 </ul>
 
                 <div class="d-grid gap-2">
-                    <a href="mailto:support@example.com" class="btn btn-outline-secondary btn-sm">Hubungi Support</a>
+                    <a href="mailto:info@bejogja.com" class="btn btn-outline-secondary btn-sm">Hubungi Support</a>
                 </div>
             </div>
         </div>
