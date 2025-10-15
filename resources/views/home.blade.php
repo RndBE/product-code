@@ -268,7 +268,7 @@
                 <hr>
 
                 <div class="text-center mb-3">
-                    <img src="{{ asset('img/labels.png') }}"
+                    <img src="{{ asset('img/Label.png') }}"
                         alt="Contoh Label Serial Number Data Logger"
                         class="img-fluid rounded border"
                         style="max-height:180px;">
