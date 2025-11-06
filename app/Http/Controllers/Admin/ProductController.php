@@ -63,7 +63,7 @@ class ProductController extends Controller
 
         return view('admin.products.index', compact('products'));
     }
-    
+
     public function bulkPrint(Request $request)
     {
         // dd('masuk controller', $request->all());
@@ -96,6 +96,12 @@ class ProductController extends Controller
 
         // Ambil semua ID produk inventory yang sudah tersimpan di DB
         $usedIds = Product::pluck('produk_jadi_list_id')->toArray();
+
+        dd([
+        'qcProducts' => $qcProducts,
+        'usedIds' => $usedIds,
+        'api_url' => config('services.inventory.url') . '/qc-produk-jadi'
+    ]);
 
         return view('admin.products.form', [
             'inventoryProducts' => $qcProducts,
