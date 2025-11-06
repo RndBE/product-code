@@ -150,7 +150,7 @@
             <div class="card verify-card shadow-sm">
                 <div class="verify-hero">
                     <h4 class="mb-2">Cek Serial Number</h4>
-                    <p class="text-muted mb-3">Masukkan S/N untuk memastikan keaslian dan mengakses dokumen resmi produk.  ashugjdfhbjsdafhbjkfsdcajkhbgcfsd</p>
+                    <p class="text-muted mb-3">Masukkan S/N untuk memastikan keaslian dan mengakses dokumen resmi produk.  hgv</p>
 
                     <form method="POST" action="{{ route('verify.store') }}" id="verifyForm">
                         @csrf
