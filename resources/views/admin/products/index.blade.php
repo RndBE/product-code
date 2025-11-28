@@ -174,7 +174,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($products as $product)
+                    @foreach($products as $product)
                     <tr>
                         <td class="align-middle text-center">
                             <input type="checkbox" name="selected_products[]" value="{{ $product->id }}" class="rowCheckbox">
@@ -303,11 +303,7 @@
                             </div>
                         </td>
                     </tr>
-                    @empty
-                    <tr>
-                        <td colspan="8" class="text-center small-muted py-4">Tidak ada produk ditemukan.</td>
-                    </tr>
-                    @endforelse
+                    @endforeach
                 </tbody>
             </table>
         </form>
